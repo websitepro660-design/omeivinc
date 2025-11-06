@@ -1,0 +1,706 @@
+<html lang="fr" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Omeivinc | Design & Innovation</title>
+    
+    <!-- Chargement de Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Importation de la police "Inter" (similaire à Figma) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+
+    <style>
+        /* ========================================================== */
+        /* BASE / THÈME CLAIR (Par défaut) */
+        /* ========================================================== */
+        :root {
+            /* Couleurs principales du thème clair (Bleu Ciel) */
+            --bg-primary: #F0F8FF; /* AliceBlue / sky-50 */
+            --bg-secondary: white;
+            --text-primary: #333333; /* Gris foncé */
+            --text-secondary: #555555;
+            --accent-main: #0369A1; /* sky-700 */
+            --accent-light: #38BDF8; /* sky-400 */
+            --border-color: #E0F2FE; /* sky-100 */
+            --grid-color: rgba(0, 0, 0, 0.05);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-primary); 
+            color: var(--text-primary);
+            overflow-x: hidden; 
+            transition: background-color 0.5s, color 0.5s;
+        }
+
+        /* Styles spécifiques pour le thème CLAIR */
+        .header-bg {
+            background-color: rgba(255, 255, 255, 0.7);
+            border: 1px solid var(--border-color);
+        }
+
+        /* ========================================================== */
+        /* THÈME SOMBRE (Override pour .dark-mode) */
+        /* ========================================================== */
+        body.dark-mode {
+            /* Couleurs principales du thème sombre (Noir) */
+            --bg-primary: #0A0A0A; /* Noir presque pur */
+            --bg-secondary: #1F2937; /* gray-800 */
+            --text-primary: #E0E0E0; /* Blanc cassé */
+            --text-secondary: #A0A0A0; /* Gris clair */
+            --accent-main: #00BFFF; /* Deep Sky Blue */
+            --accent-light: #67E8F9; /* sky-300 */
+            --border-color: #1F2937; /* gray-800 */
+            --grid-color: rgba(255, 255, 255, 0.05);
+        }
+
+        /* Styles spécifiques pour le thème SOMBRE */
+        body.dark-mode .header-bg {
+            background-color: rgba(17, 24, 39, 0.8); /* gray-900/80 */
+            border: 1px solid var(--border-color);
+        }
+
+        /* Ajustement des couleurs d'accentuation via variables CSS */
+        .text-accent { color: var(--accent-main); }
+        .bg-accent { background-color: var(--accent-main); }
+        .hover\:bg-accent-hover:hover { background-color: var(--accent-light); } /* Utilisé sur le bouton principal */
+        
+        /* ----------------------------------------------------------------- */
+        /* NOUVEAU : Fond d'image Parallax fixe pour les sections */
+        /* ----------------------------------------------------------------- */
+        .bg-fixed-parallax {
+            /* CORRECTION: Remplacement de l'image locale par un placeholder */
+            background-image: url('images/duplex.png');
+            background-attachment: fixed;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-size: cover;
+            position: relative; 
+            overflow: hidden; /* Pour contenir l'overlay */
+        }
+
+        /* Overlay pour assurer le contraste du texte sur l'image (effet Verre Dépoli) */
+        .content-overlay {
+            position: relative;
+            z-index: 10;
+            background-color: rgba(255, 255, 255, 0.85); /* Clair par défaut */
+            backdrop-filter: blur(5px); 
+            min-height: 100%;
+        }
+
+        /* Override pour le thème sombre */
+        body.dark-mode .content-overlay {
+            background-color: rgba(17, 24, 39, 0.9); /* gray-900 semi-transparent */
+        }
+        
+        /* * CORRECTION : La règle CSS qui cachait la grille a été supprimée.
+         * Elle entrait en conflit avec le HTML qui tentait de l'afficher.
+         */
+        /* #agence .figma-grid-bg, #contact .figma-grid-bg {
+           display: none;
+        }
+        */
+
+        /* ----------------------------------------------------------------- */
+        /* Parallax sur les images de projet */
+        /* ----------------------------------------------------------------- */
+        .parallax-image-wrapper {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .parallax-image {
+            /* L'image est 20% plus haute que son conteneur pour permettre le mouvement */
+            width: 100%;
+            height: 120%; 
+            object-fit: cover;
+            position: absolute;
+            top: -10%; /* Centrer l'image plus grande dans le conteneur */
+            left: 0;
+            /* CORRECTION: Transition modifiée pour coexister avec le JS du parallaxe */
+            transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+        
+        /* Effet de survol : Échelle légèrement l'image */
+        /* CORRECTION: Ajout de !important pour prioriser le hover sur le JS du parallaxe */
+        .project-card:hover .parallax-image {
+            transform: scale(1.05) translateY(0) !important; 
+        }
+
+        /* ----------------------------------------------------------------- */
+        /* NOUVEAU : Animation de rotation pour la carte Agence */
+        /* ----------------------------------------------------------------- */
+        @keyframes bounceRotate {
+            0% { transform: rotate(0deg) scale(0.95); }
+            80% { transform: rotate(5deg) scale(1); }
+            100% { transform: rotate(-3deg) scale(1); }
+        }
+
+        .agency-image-card {
+            /* Position initiale de rotation, sera remplacée par l'animation */
+            transform: rotate(0deg); 
+            transition: transform 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        /* Déclenchement de l'animation quand le parent est visible */
+        .reveal-on-scroll.is-visible .agency-image-card {
+            animation: bounceRotate 1.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; 
+        }
+        
+        /* Curseur (utilise une couleur fixe pour un contraste constant) */
+        body, a, button { cursor: none; }
+        .cursor-dot {
+            width: 8px; height: 8px; background-color: var(--accent-light);
+            border-radius: 50%; position: fixed; top: 0; left: 0; transform: translate(-50%, -50%);
+            pointer-events: none; z-index: 9999; transition: width 0.2s ease-out, height 0.2s ease-out;
+        }
+        .cursor-outline {
+            width: 40px; height: 40px; border: 2px solid var(--accent-light);
+            border-radius: 50%; position: fixed; top: 0; left: 0; transform: translate(-50%, -50%);
+            pointer-events: none; z-index: 9998; transition: transform 0.1s linear, opacity 0.2s ease-out;
+        }
+        body.cursor-hover .cursor-dot { width: 12px; height: 12px; }
+        body.cursor-hover .cursor-outline { transform: translate(-50%, -50%) scale(1.5); opacity: 0.5; }
+
+        /* Grille "infinie" en arrière-plan */
+        .figma-grid-bg {
+            background-image: 
+                linear-gradient(to right, var(--grid-color) 1px, transparent 1px),
+                linear-gradient(to bottom, var(--grid-color) 1px, transparent 1px);
+            background-size: 40px 40px;
+            background-position: -1px -1px;
+            position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: 0; opacity: 1;
+            transition: background-image 0.5s;
+        }
+        .parallax { background-attachment: fixed; background-position: center; background-repeat: no-repeat; background-size: cover; }
+        
+        /* Animations de révélation et Titre Héro */
+        .reveal-on-scroll { opacity: 0; transform: translateY(40px); filter: blur(5px); transition: opacity 1s cubic-bezier(0.165, 0.84, 0.44, 1), transform 0.8s cubic-bezier(0.165, 0.84, 0.44, 1), filter 0.8s cubic-bezier(0.165, 0.84, 0.44, 1); }
+        .reveal-on-scroll.is-visible { opacity: 1; transform: translateY(0); filter: blur(0); }
+        .hero-title span { display: inline-block; opacity: 0; transform: translateY(50px) rotate(10deg); animation: revealChar 1.2s cubic-bezier(0.075, 0.82, 0.165, 1) forwards; }
+        @keyframes revealChar { from { opacity: 0; transform: translateY(50px) rotate(10deg); } to { opacity: 1; transform: translateY(0) rotate(0); } }
+        
+        /* Cartes de projet (dégradé sombre pour que le texte blanc soit lisible sur l'image) */
+        .project-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(180deg, rgba(0,0,0,0) 50%, rgba(0,0,0,0.8) 100%); transition: opacity 0.3s ease; opacity: 0.8; }
+        .project-card:hover::before { opacity: 1; }
+        .project-card .project-content { transform: translateY(20px); opacity: 0; transition: transform 0.4s ease, opacity 0.4s ease; }
+        .project-card:hover .project-content { transform: translateY(0); opacity: 1; }
+
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Éléments du curseur personnalisé -->
+    <div class="cursor-dot"></div>
+    <div class="cursor-outline"></div>
+
+    <!-- Conteneur principal -->
+    <div class="relative z-10">
+
+        <!-- Header / Navigation -->
+        <header class="fixed top-0 left-0 right-0 z-50">
+            <!-- Padding vertical constant py-5 -->
+            <nav class="container mx-auto px-6 py-5 flex justify-between items-center">
+                
+                <!-- Logo -->
+                <a href="#" class="text-3xl font-black tracking-tighter hover-target" style="color: var(--text-primary);">
+                    OMEI<span class="text-accent">VINC</span> 
+                </a>
+                
+                <div class="flex items-center space-x-4">
+                    <!-- Liens de navigation avec un fond flou subtil (header-bg) -->
+                    <div class="hidden md:flex items-center space-x-2 header-bg backdrop-blur-md p-2 rounded-lg transition-colors duration-500">
+                        <a href="#projets" class="hover-target px-4 py-2 rounded-md text-sm font-medium hover:bg-sky-200 transition-colors" style="color: var(--text-primary);">Projets</a>
+                        <a href="#agence" class="hover-target px-4 py-2 rounded-md text-sm font-medium hover:bg-sky-200 transition-colors" style="color: var(--text-primary);">L'Agence</a>
+                        <a href="#services" class="hover-target px-4 py-2 rounded-md text-sm font-medium hover:bg-sky-200 transition-colors" style="color: var(--text-primary);">Services</a>
+                        
+                        <!-- Bouton Contact -->
+                        <a href="#contact" class="hover-target px-4 py-2 rounded-md text-sm font-medium text-white bg-accent hover:bg-accent-hover transition-colors">Contact</a>
+                    </div>
+                    
+                    <!-- Bouton Thème -->
+                    <button id="themeToggle" class="hover-target p-2 rounded-full transition-all duration-300 hover:scale-110" style="color: var(--text-primary); border: 1px solid var(--border-color);">
+                        <!-- Icône du Soleil (Mode Clair) ou de la Lune (Mode Sombre). L'icône réelle est changée par JS -->
+                        <svg id="themeIcon" class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <!-- Le chemin de l'icône (soleil ou lune) sera inséré ici par JavaScript -->
+                        </svg>
+                    </button>
+                    
+                    <!-- Menu Mobile (placeholder) -->
+                    <div class="md:hidden">
+                        <svg class="w-6 h-6 hover-target" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="color: var(--text-primary);"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+                    </div>
+                </div>
+            </nav>
+        </header>
+
+        <!-- Section Héro -->
+        <section class="min-h-screen h-screen flex items-center justify-center text-center relative overflow-hidden px-6">
+            <!-- Arrière-plan grille Figma -->
+            <div class="figma-grid-bg parallax"></div>
+            
+            <div class="relative z-10">
+                <!-- 
+                  CORRECTION : J'ai enveloppé chaque caractère dans un <span> avec un délai
+                  pour que votre animation CSS "revealChar" fonctionne comme prévu.
+                -->
+                <h1 class="hero-title text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-black tracking-tighter leading-none" style="color: var(--text-primary);">
+                    <span style="animation-delay: 0ms">L</span><span style="animation-delay: 30ms">'</span><span style="animation-delay: 60ms">A</span><span style="animation-delay: 90ms">r</span><span style="animation-delay: 120ms">t</span>
+                    <span style="animation-delay: 150ms">&nbsp;</span>
+                    <span style="animation-delay: 180ms">d</span><span style="animation-delay: 210ms">e</span>
+                    <span style="animation-delay: 240ms">&nbsp;</span>
+                    <span class="text-accent">
+                        <span style="animation-delay: 270ms">B</span><span style="animation-delay: 300ms">â</span><span style="animation-delay: 330ms">t</span><span style="animation-delay: 360ms">i</span><span style="animation-delay: 390ms">r</span>
+                    </span>
+                    <br/> 
+                    <span style="animation-delay: 420ms">L</span><span style="animation-delay: 450ms">e</span>
+                    <span style="animation-delay: 480ms">&nbsp;</span>
+                    <span style="animation-delay: 510ms">F</span><span style="animation-delay: 540ms">u</span><span style="animation-delay: 570ms">t</span><span style="animation-delay: 600ms">u</span><span style="animation-delay: 630ms">r</span><span style="animation-delay: 660ms">.</span>
+                </h1>
+                
+                <p class="reveal-on-scroll text-lg md:text-xl max-w-2xl mx-auto mt-8" style="transition-delay: 500ms; color: var(--text-secondary);">
+                    Nous transformons des idées audacieuses en espaces iconiques.
+                    L'architecture est plus qu'une structure, c'est une expérience.
+                </p>
+                
+                <!-- Indicateur de scroll -->
+                <div class="reveal-on-scroll absolute bottom-12 left-1/2 -translate-x-1/2" style="transition-delay: 800ms;">
+                    <div class="w-6 h-10 border-2 rounded-full flex justify-center p-1" style="border-color: var(--text-secondary);">
+                        <span class="w-1 h-2 rounded-full animate-bounce" style="background-color: var(--accent-main);"></span> 
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section Projets (Le "Wow" visuel) -->
+        <section id="projets" class="bg-fixed-parallax">
+            <!-- Wrapper Overlay pour le contraste du texte -->
+            <div class="content-overlay py-24 md:py-32">
+                <div class="container mx-auto px-6">
+                    <div class="reveal-on-scroll text-center mb-16">
+                        <h2 class="text-sm font-semibold text-accent tracking-widest uppercase">Nos Réalisations</h2>
+                        <p class="text-4xl md:text-5xl font-bold mt-2" style="color: var(--text-primary);">Projets Sélectionnés</p>
+                    </div>
+
+                    <!-- Grille de projets -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                        
+                        <!-- Projet 1 -->
+                        <a href="#" class="reveal-on-scroll block relative h-[500px] rounded-2xl overflow-hidden project-card hover-target" style="transition-delay: 100ms;">
+                            <!-- Wrapper pour l'effet Parallax -->
+                            <div class="parallax-image-wrapper">
+                                <!-- CORRECTION: Image remplacée -->
+                                <img src="images/musée.png" alt="[Image du projet Musée Horizon]" class="parallax-image">
+                            </div>
+                            <div class="absolute bottom-0 left-0 right-0 p-8 z-20">
+                                <div class="project-content">
+                                    <span class="text-sm font-medium text-sky-300">Culturel</span> 
+                                    <h3 class="text-3xl font-bold text-white mt-1">Musée Horizon</h3>
+                                </div>
+                            </div>
+                        </a>
+
+                        <!-- Projet 2 -->
+                        <a href="#" class="reveal-on-scroll block relative h-[500px] rounded-2xl overflow-hidden project-card hover-target md:mt-16" style="transition-delay: 200ms;">
+                            <!-- Wrapper pour l'effet Parallax -->
+                            <div class="parallax-image-wrapper">
+                                <!-- CORRECTION: Image remplacée -->
+                                <img src="images/Résidentiel.png" alt="[Image du projet Villa Céleste]" class="parallax-image">
+                            </div>
+                            <div class="absolute bottom-0 left-0 right-0 p-8 z-20">
+                                <div class="project-content">
+                                    <span class="text-sm font-medium text-sky-300">Résidentiel</span> 
+                                    <h3 class="text-3xl font-bold text-white mt-1">Villa Dosk</h3>
+                                </div>
+                            </div>
+                        </a>
+
+                        <!-- Projet 3 -->
+                        <a href="#" class="reveal-on-scroll block relative h-[500px] rounded-2xl overflow-hidden project-card hover-target" style="transition-delay: 300ms;">
+                            <!-- Wrapper pour l'effet Parallax -->
+                            <div class="parallax-image-wrapper">
+                                <!-- CORRECTION: Image remplacée -->
+                                <img src="images/tour commerciale.png" alt="[Image du projet Tour Synergy]" class="parallax-image">
+                            </div>
+                            <div class="absolute bottom-0 left-0 right-0 p-8 z-20">
+                                <div class="project-content">
+                                    <span class="text-sm font-medium text-sky-300">Commercial</span> 
+                                    <h3 class="text-3xl font-bold text-white mt-1">Tour Synergy</h3>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                    
+                    <div class="reveal-on-scroll text-center mt-16">
+                        <!-- Bouton Voir projets -->
+                        <a href="#contact" class="hover-target text-lg font-semibold text-white bg-accent px-8 py-4 rounded-lg hover:bg-accent-hover transition-all duration-300 transform hover:scale-105 shadow-lg" style="box-shadow: 0 10px 15px -3px rgba(var(--accent-main), 0.3), 0 4px 6px -2px rgba(var(--accent-main), 0.1);">
+                            Voir tous les projets
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section Agence (Notre Philosophie) -->
+        <section id="agence" class="bg-fixed-parallax relative">
+            <!-- Fond grille subtil (maintenant visible) -->
+            <div class="figma-grid-bg opacity-30"></div>
+
+            <!-- Wrapper Overlay pour le contraste du texte -->
+            <div class="content-overlay py-24 md:py-32">
+                <div class="container mx-auto px-6 relative z-10 grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
+                    <!-- Colonne Image -->
+                    <div class="reveal-on-scroll">
+                        <div class="relative rounded-2xl overflow-hidden shadow-2xl agency-image-card">
+                            <img src="images/équipe.png" alt="[Image de l'équipe Omeivinc en discussion]" class="w-full h-full object-cover">
+                            <div class="absolute top-4 right-4 text-white text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full bg-accent">En Action</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Colonne Texte -->
+                    <div class="reveal-on-scroll" style="transition-delay: 200ms;">
+                        <h2 class="text-sm font-semibold text-accent tracking-widest uppercase">L'Agence</h2>
+                        <p class="text-4xl md:text-5xl font-bold mt-2" style="color: var(--text-primary);">Penser. Dessiner. Construire.</p>
+                        <p class="text-lg mt-6 leading-relaxed" style="color: var(--text-secondary);">
+                            Chez Omeivinc, nous croyons que chaque ligne a un but. Notre approche est un dialogue constant entre la créativité et la fonctionnalité, l'audace et la précision.
+                        </p>
+                        <p class="text-lg mt-4 leading-relaxed" style="color: var(--text-secondary);">
+                            Inspirés par la pureté des outils de design numérique, nous apportons une clarté et une intentionnalité "pixel-perfect" à chaque phase du projet, du premier croquis au bâtiment fini.
+                        </p>
+                        <!-- Lien en savoir plus -->
+                        <button id="openAgencyCard" class="hover-target mt-8 text-lg font-semibold text-accent group transition-all duration-300">
+                            En savoir plus
+                            <span class="inline-block transform group-hover:translate-x-2 transition-transform">→</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Carte modale Agence -->
+        <div id="agencyCard" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-70 z-50 opacity-0 pointer-events-none transition-opacity duration-300">
+            <div class="bg-white rounded-3xl shadow-2xl p-10 max-w-4xl w-full relative overflow-hidden" id="agencyCardContent">
+                <!-- Bouton fermer -->
+                <button id="closeAgencyCard" class="absolute top-4 right-4 text-gray-500 hover:text-gray-800 text-3xl font-bold hover-target">&times;</button>
+                <h3 class="text-4xl font-bold mb-6 text-center text-accent">Notre Philosophie</h3>
+                <p id="agencyText" class="text-lg leading-relaxed text-gray-800" style="min-height:200px;"></p>
+            </div>
+        </div>
+
+        <!-- Section Services -->
+        <section id="services" class="bg-fixed-parallax">
+            <!-- Wrapper Overlay pour le contraste du texte -->
+            <div class="content-overlay py-24 md:py-32">
+                <div class="container mx-auto px-6">
+                    <div class="reveal-on-scroll text-center mb-16">
+                        <h2 class="text-sm font-semibold text-accent tracking-widest uppercase">Notre Expertise</h2>
+                        <p class="text-4xl md:text-5xl font-bold mt-2" style="color: var(--text-primary);">Du Concept à la Réalité</p>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                        
+                        <!-- Service 1 -->
+                        <div class="reveal-on-scroll p-8 rounded-2xl transition-all duration-300 hover:shadow-xl" style="background-color: var(--bg-primary); border: 1px solid var(--border-color);">
+                            <!-- Icône SVG "Figma-like" -->
+                            <svg class="w-12 h-12 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12l-2 3-2-3m-1-4l-2 3-2-3m5 0l2 3 2-3M3 12l6.414 6.414a2 2 0 002.828 0L18 12M3 12l6.414-6.414a2 2 0 012.828 0L18 12"></path></svg>
+                            <h3 class="text-2xl font-bold mt-6" style="color: var(--text-primary);">Conception Architecturale</h3>
+                            <p class="mt-3" style="color: var(--text-secondary);">Créer des espaces qui racontent une histoire, alliant esthétique et fonctionnalité pure.</p>
+                        </div>
+                        
+                        <!-- Service 2 -->
+                        <!-- CORRECTION: Attributs 'style' dupliqués fusionnés -->
+                        <div class="reveal-on-scroll p-8 rounded-2xl transition-all duration-300 hover:shadow-xl" style="background-color: var(--bg-primary); border: 1px solid var(--border-color); transition-delay: 200ms;">
+                            <!-- Icône SVG "Figma-like" -->
+                            <svg class="w-12 h-12 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m-1 4h1m6-4h1m-1 4h1m-1 4h1m-1-8h1m-1 4h1"></path></svg>
+                            <h3 class="text-2xl font-bold mt-6" style="color: var(--text-primary);">Urbanisme & Paysage</h3>
+                            <p class="mt-3" style="color: var(--text-secondary);">Façonner des environnements urbains durables et connectés qui améliorent la vie en communauté.</p>
+                        </div>
+                        
+                        <!-- Service 3 -->
+                        <!-- CORRECTION: Attributs 'style' dupliqués fusionnés -->
+                        <div class="reveal-on-scroll p-8 rounded-2xl transition-all duration-300 hover:shadow-xl" style="background-color: var(--bg-primary); border: 1px solid var(--border-color); transition-delay: 400ms;">
+                            <!-- Icône SVG "Figma-like" -->
+                            <svg class="w-12 h-12 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"></path></svg>
+                            <h3 class="text-2xl font-bold mt-6" style="color: var(--text-primary);">Design d'Intérieur</h3>
+                            <p class="mt-3" style="color: var(--text-secondary);">De la micro-architecture au mobilier sur mesure, nous soignons chaque détail intérieur.</p>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Section Contact (CTA) -->
+        <section id="contact" class="bg-fixed-parallax relative">
+            <!-- Fond grille subtil (maintenant visible) -->
+            <div class="figma-grid-bg parallax"></div>
+
+            <!-- Wrapper Overlay pour le contraste du texte -->
+            <div class="content-overlay py-24 md:py-32">
+                <div class="container mx-auto px-6 relative z-10 text-center">
+                    <div class="reveal-on-scroll">
+                        <h2 class="text-4xl md:text-6xl font-black tracking-tighter" style="color: var(--text-primary);">
+                            Prêt à bâtir votre vision ?
+                        </h2>
+                        <p class="text-lg md:text-xl max-w-2xl mx-auto mt-6" style="color: var(--text-secondary);">
+                            Notre équipe est prête à transformer votre ambition en réalité.
+                            Commençons la conversation.
+                        </p>
+                        <!-- Bouton CTA principal -->
+                        <button id="openContactCard" class="hover-target text-xl font-bold text-white bg-accent px-10 py-5 rounded-lg hover:bg-accent-hover transition-all duration-300 transform hover:scale-105 shadow-2xl mt-10" style="box-shadow: 0 20px 25px -5px rgba(var(--accent-main), 0.4), 0 10px 10px -5px rgba(var(--accent-main), 0.2);">
+                            Démarrer un projet
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Carte modale Contact -->
+        <div id="contactCard" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-70 z-50 opacity-0 pointer-events-none transition-opacity duration-300">
+            <div class="bg-white rounded-2xl shadow-2xl p-10 max-w-lg w-full relative" id="contactCardContent">
+                <!-- Bouton fermer -->
+                <button id="closeContactCard" class="absolute top-4 right-4 text-gray-500 hover:text-gray-800 text-2xl font-bold hover-target">&times;</button>
+                <h3 class="text-3xl font-bold mb-6 text-center">Envoyez-nous un message</h3>
+                <form class="space-y-4" action="mailto:votre-email@example.com" method="post" enctype="text/plain">
+                    <input type="text" name="name" placeholder="Votre nom" required class="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-accent hover-target">
+                    <input type="email" name="email" placeholder="Votre email" required class="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-accent hover-target">
+                    <textarea name="message" placeholder="Votre message" rows="5" required class="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-accent hover-target"></textarea>
+                    <button type="submit" class="w-full text-white bg-accent py-3 rounded-lg font-bold hover:bg-accent-hover transition-all duration-300 hover-target">Envoyer</button>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <footer class="py-16" style="border-top: 1px solid var(--border-color);">
+            <div class="container mx-auto px-6 flex flex-col md:flex-row justify-between items-center text-center md:text-left">
+                <div>
+                    <a href="#" class="text-2xl font-black tracking-tighter hover-target" style="color: var(--text-primary);">
+                        OMEI<span class="text-accent">VINC</span> 
+                    </a>
+                    <p class="text-sm mt-2" style="color: var(--text-secondary);">© 2016 Omeivinc. Tous droits réservés.</p>
+                </div>
+                <div class="flex space-x-6 mt-6 md:mt-0">
+                    <a href="#" class="hover:text-accent transition-colors hover-target" style="color: var(--text-secondary);">Instagram</a>
+                    <a href="#" class="hover:text-accent transition-colors hover-target" style="color: var(--text-secondary);">Pinterest</a>
+                    <a href="#" class="hover:text-accent transition-colors hover-target" style="color: var(--text-secondary);">LinkedIn</a>
+                </div>
+            </div>
+        </footer>
+
+    </div> <!-- Fin du conteneur principal -->
+
+
+    <!-- 
+      ==================================================================
+      SCRIPT PRINCIPAL AJOUTÉ
+      ==================================================================
+      Tout le JavaScript manquant (curseur, thèmes, animations)
+      et le code des modales (corrigé et fusionné) est ici.
+    -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+
+            // --------------------------------------------------
+            // 1. Gestion du Mode Sombre (Dark Mode)
+            // --------------------------------------------------
+            const themeToggle = document.getElementById('themeToggle');
+            const themeIcon = document.getElementById('themeIcon');
+            const body = document.body;
+
+            // Icônes SVG pour le soleil et la lune
+            const sunIcon = `<path fill-rule="evenodd" d="M12 17.5a5.5 5.5 0 100-11 5.5 5.5 0 000 11zM12 20a8 8 0 100-16 8 8 0 000 16z" clip-rule="evenodd"></path><path d="M12 3a1 1 0 011 1v1a1 1 0 11-2 0V4a1 1 0 011-1zM20.928 6.647a1 1 0 01.072 1.414l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414-.072zM21 12a1 1 0 01-1 1h-1a1 1 0 110-2h1a1 1 0 011 1zM13.353 20.928a1 1 0 01-1.414.072l-.707-.707a1 1 0 011.414-1.414l.707.707a1 1 0 01.072 1.414zM3 12a1 1 0 011-1h1a1 1 0 110 2H4a1 1 0 01-1-1zM6.647 3.072a1 1 0 011.414-.072l.707.707a1 1 0 01-1.414 1.414l-.707-.707a1 1 0 01.072-1.414zM4.072 13.353a1 1 0 01.072-1.414l.707-.707a1 1 0 011.414 1.414l-.707.707a1 1 0 01-1.414.072zM6.647 20.928a1 1 0 011.414.072l.707-.707a1 1 0 11-1.414-1.414l-.707.707a1 1 0 01-.072 1.414z"></path>`;
+            const moonIcon = `<path d="M12 3a9 9 0 109 9c0-.46-.04-.92-.12-1.36a9.006 9.006 0 01-8.52 7.88v0a9.006 9.006 0 01-8.52-7.88A9 9 0 0012 3z"></path>`;
+
+            // Vérifier le thème sauvegardé ou par défaut
+            const isDarkMode = localStorage.getItem('theme') === 'dark';
+            if (isDarkMode) {
+                body.classList.add('dark-mode');
+                themeIcon.innerHTML = sunIcon;
+            } else {
+                themeIcon.innerHTML = moonIcon;
+            }
+
+            themeToggle.addEventListener('click', () => {
+                body.classList.toggle('dark-mode');
+                if (body.classList.contains('dark-mode')) {
+                    themeIcon.innerHTML = sunIcon;
+                    localStorage.setItem('theme', 'dark');
+                } else {
+                    themeIcon.innerHTML = moonIcon;
+                    localStorage.setItem('theme', 'light');
+                }
+            });
+
+            // --------------------------------------------------
+            // 2. Gestion du Curseur Personnalisé
+            // --------------------------------------------------
+            const cursorDot = document.querySelector('.cursor-dot');
+            const cursorOutline = document.querySelector('.cursor-outline');
+            const hoverTargets = document.querySelectorAll('.hover-target');
+
+            window.addEventListener('mousemove', (e) => {
+                const posX = e.clientX;
+                const posY = e.clientY;
+
+                cursorDot.style.left = `${posX}px`;
+                cursorDot.style.top = `${posY}px`;
+
+                cursorOutline.style.left = `${posX}px`;
+                cursorOutline.style.top = `${posY}px`;
+            });
+
+            hoverTargets.forEach(target => {
+                target.addEventListener('mouseenter', () => {
+                    body.classList.add('cursor-hover');
+                });
+                target.addEventListener('mouseleave', () => {
+                    body.classList.remove('cursor-hover');
+                });
+            });
+
+            // --------------------------------------------------
+            // 3. Animation de Révélation au Défilement (Scroll)
+            // --------------------------------------------------
+            const revealElements = document.querySelectorAll('.reveal-on-scroll');
+            
+            const revealObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('is-visible');
+                    }
+                    // Optionnel: décommenter pour ré-animer à chaque fois
+                    // else {
+                    //     entry.target.classList.remove('is-visible');
+                    // }
+                });
+            }, {
+                threshold: 0.1 // Se déclenche quand 10% de l'élément est visible
+            });
+
+            revealElements.forEach(el => {
+                revealObserver.observe(el);
+            });
+
+            // --------------------------------------------------
+            // 4. Parallaxe des Images de Projet
+            // --------------------------------------------------
+            const parallaxImages = document.querySelectorAll('.parallax-image');
+
+            window.addEventListener('scroll', () => {
+                const windowHeight = window.innerHeight;
+
+                parallaxImages.forEach(img => {
+                    const wrapper = img.closest('.parallax-image-wrapper');
+                    if (!wrapper) return;
+
+                    const rect = wrapper.getBoundingClientRect();
+                    
+                    // N'animer que si c'est (à peu près) dans le viewport
+                    if (rect.bottom < 0 || rect.top > windowHeight) {
+                        return; 
+                    }
+
+                    const cardCenterY = rect.top + rect.height / 2;
+                    const screenCenterY = windowHeight / 2;
+                    const diff = cardCenterY - screenCenterY;
+                    
+                    // Calcule un décalage en % basé sur la distance du centre de l'écran
+                    // (diff / screenCenterY) donne une plage de -1 à 1
+                    // Multiplié par -10, on obtient un décalage de -10% à +10%
+                    const movePercent = (diff / screenCenterY) * -10; 
+
+                    // On applique le scale(1.0) pour éviter que l'image soit déformée par le hover
+                    if (!img.closest('.project-card').matches(':hover')) {
+                        img.style.transform = `scale(1.0) translateY(${movePercent}%)`;
+                    }
+                });
+            });
+
+            // --------------------------------------------------
+            // 5. Logique Modale (Agence)
+            // --------------------------------------------------
+            // CORRECTION: Utilisation de noms de variables uniques
+            const openAgencyBtn = document.getElementById('openAgencyCard');
+            const closeAgencyBtn = document.getElementById('closeAgencyCard');
+            const agencyCard = document.getElementById('agencyCard');
+            const agencyCardContent = document.getElementById('agencyCardContent');
+            const agencyText = document.getElementById('agencyText');
+
+            const fullText = `Chez Omeivinc, chaque projet est une exploration audacieuse. 
+Nous combinons créativité, innovation et rigueur technique pour transformer vos idées en réalisations tangibles. 
+Notre équipe met un point d’honneur à ce que chaque détail ait un sens, du premier croquis au projet final. 
+L’approche pixel-perfect assure une précision maximale et une expérience visuelle optimale, 
+garantissant des résultats à la fois fonctionnels et esthétiques. 
+Nous croyons au dialogue constant avec nos clients, à l’adaptabilité face aux défis, et à l’excellence dans chaque étape de conception.`;
+
+            let typeIndex = 0;
+            let typeInterval;
+
+            function typeWriter() {
+                if (typeIndex < fullText.length) {
+                    agencyText.innerHTML += fullText.charAt(typeIndex);
+                    typeIndex++;
+                } else {
+                    clearInterval(typeInterval);
+                }
+            }
+            
+            function startTypewriter() {
+                agencyText.innerHTML = '';
+                typeIndex = 0;
+                clearInterval(typeInterval); // S'assurer qu'aucun ancien intervalle ne tourne
+                typeInterval = setInterval(typeWriter, 15); // Vitesse de frappe
+            }
+
+            openAgencyBtn.addEventListener('click', () => {
+                agencyCard.classList.remove('opacity-0', 'pointer-events-none');
+                startTypewriter();
+            });
+
+            closeAgencyBtn.addEventListener('click', () => {
+                agencyCard.classList.add('opacity-0', 'pointer-events-none');
+            });
+
+            agencyCard.addEventListener('click', (e) => {
+                // Fermer si on clique en dehors du contenu (sur le fond)
+                if (e.target === agencyCard) {
+                    agencyCard.classList.add('opacity-0', 'pointer-events-none');
+                }
+            });
+
+
+            // --------------------------------------------------
+            // 6. Logique Modale (Contact)
+            // --------------------------------------------------
+            // CORRECTION: Utilisation de noms de variables uniques et logique unifiée
+            const openContactBtn = document.getElementById('openContactCard');
+            const closeContactBtn = document.getElementById('closeContactCard');
+            const contactCard = document.getElementById('contactCard');
+            const contactCardContent = document.getElementById('contactCardContent');
+
+            openContactBtn.addEventListener('click', () => {
+                contactCard.classList.remove('opacity-0', 'pointer-events-none');
+            });
+
+            closeContactBtn.addEventListener('click', () => {
+                contactCard.classList.add('opacity-0', 'pointer-events-none');
+            });
+
+            contactCard.addEventListener('click', (e) => {
+                // Fermer si on clique en dehors du contenu (sur le fond)
+                if (e.target === contactCard) {
+                    contactCard.classList.add('opacity-0', 'pointer-events-none');
+                }
+            });
+
+        });
+    </script>
+</body>
+</html>
